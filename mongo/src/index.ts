@@ -1,10 +1,47 @@
-import express from 'express';
+import { DbConnection } from '../db-connection';
+import BookDatAccess from './data-access/book-data-access';
+import { Book } from './entity/bookModel';
+import { GridFS } from './data-access/grid-fs';
 
-const app = express();
-const port = 3000;
+class Test {
 
-app.get('/', (request, response) => {
-    response.send('Hello World!');
-});
+    async configureDb() {
+        let dbConnection = new DbConnection();
+        await dbConnection.connect();
 
-app.listen(port, ()=> console.log(`server listening on ${port}`));
+
+
+        //TEST
+        let bookDatAccess = new BookDatAccess();
+
+        let book = new Book();
+        book.author = 'test';
+        book.date = new Date();
+        book.title = 'design patterns';
+
+        let createdBook = await bookDatAccess.save(book);
+
+        console.log(createdBook);
+
+        let readedBook = await bookDatAccess.read(createdBook.id);
+
+
+        readedBook.title = 'UPDATED';
+        await bookDatAccess.update(readedBook._id, readedBook);
+        
+        await bookDatAccess.remove(readedBook._id);
+
+        const gridFS = new GridFS();
+        //await gridFS.upload('helloWorld.txt');
+        //await gridFS.upload('mongodb-windows-x86_64-5.0.8-signed.msi');
+        
+        await gridFS.download('mongodb-windows-x86_64-5.0.8-signed.msi');
+
+
+        //optional
+        //await dbConnection.disconnect();
+    }
+
+}
+
+new Test().configureDb()
